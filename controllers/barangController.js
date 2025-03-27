@@ -1,4 +1,4 @@
-const db = require('../config/db');
+const db = require("../config/db");
 
 exports.getBarang = (req, res) => {
   db.query(
@@ -13,13 +13,13 @@ exports.getBarang = (req, res) => {
      ORDER BY b.nama_barang ASC`,
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      
-      const parsedResults = results.map(item => ({
+
+      const parsedResults = results.map((item) => ({
         ...item,
         id: Number(item.id),
-        total_stok: Number(item.total_stok)
+        total_stok: Number(item.total_stok),
       }));
-      
+
       res.json(parsedResults);
     }
   );
@@ -40,11 +40,37 @@ exports.getBatchBarang = (req, res) => {
      ORDER BY bg.tanggal_kadaluarsa ASC`,
     (err, results) => {
       if (err) {
-        console.error('Error getBatchBarang:', err);
+        console.error("Error getBatchBarang:", err);
         return res.status(500).json({ error: err.message });
       }
-      console.log('Data batch:', results);
+      console.log("Data batch:", results);
       res.json(results);
     }
   );
+};
+
+exports.updateBarang = (req, res) => {
+  const { id } = req.params;
+  const { nama_barang, satuan } = req.body;
+
+  console.log("Update Barang:", id, nama_barang, satuan); // Debugging
+
+  if (!nama_barang || !satuan) {
+    return res
+      .status(400)
+      .json({ error: "Nama barang dan satuan wajib diisi." });
+  }
+
+  const query = "UPDATE barang SET nama_barang = ?, satuan = ? WHERE id = ?";
+  db.query(query, [nama_barang, satuan, id], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Barang tidak ditemukan." });
+    }
+
+    res.json({ message: "Barang berhasil diperbarui." });
+  });
 };
