@@ -28,23 +28,32 @@ exports.getBarang = (req, res) => {
 exports.getBatchBarang = (req, res) => {
   db.query(
     `SELECT 
-       bg.id,
-       bg.barang_id,
-       b.nama_barang,
-       bg.stok,
-       b.satuan,
-       bg.tanggal_kadaluarsa,
-       DATEDIFF(bg.tanggal_kadaluarsa, CURDATE()) AS hari_menuju_kadaluarsa
-     FROM batch_barang bg
-     JOIN barang b ON bg.barang_id = b.id
-     ORDER BY bg.tanggal_kadaluarsa ASC`,
+      bg.id,
+      bg.barang_id,
+      b.nama_barang,
+      bg.stok,
+      b.satuan,
+      CONVERT_TZ(bg.tanggal_kadaluarsa, '+00:00', '+07:00') AS tanggal_kadaluarsa,
+      DATEDIFF(
+        DATE(CONVERT_TZ(bg.tanggal_kadaluarsa, '+00:00', '+07:00')),
+        DATE(CONVERT_TZ(UTC_DATE(), '+00:00', '+07:00'))
+      ) AS hari_menuju_kadaluarsa
+    FROM batch_barang bg
+    JOIN barang b ON bg.barang_id = b.id
+    ORDER BY bg.tanggal_kadaluarsa ASC`,
     (err, results) => {
       if (err) {
         console.error("Error getBatchBarang:", err);
         return res.status(500).json({ error: err.message });
       }
-      console.log("Data batch:", results);
-      res.json(results);
+
+      const formattedResults = results.map(item => ({
+        ...item,
+        tanggal_kadaluarsa: new Date(item.tanggal_kadaluarsa).toISOString(), // Always ISO format
+      }));
+
+      console.log("Data batch:", formattedResults);
+      res.json(formattedResults);
     }
   );
 };
