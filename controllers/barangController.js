@@ -49,7 +49,7 @@ exports.getBatchBarang = (req, res) => {
 
       const formattedResults = results.map(item => ({
         ...item,
-        tanggal_kadaluarsa: new Date(item.tanggal_kadaluarsa).toISOString(), // Always ISO format
+        tanggal_kadaluarsa: new Date(item.tanggal_kadaluarsa).toISOString(),
       }));
 
       console.log("Data batch:", formattedResults);

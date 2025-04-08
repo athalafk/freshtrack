@@ -38,3 +38,4 @@ dist/
 build/
 
 hash.js
+test.js
