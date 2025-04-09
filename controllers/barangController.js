@@ -1,61 +1,63 @@
 const db = require("../config/db");
 
-exports.getBarang = (req, res) => {
-  db.query(
-    `SELECT 
-       b.id, 
-       b.nama_barang, 
-       b.satuan,
-       CAST(IFNULL(SUM(bg.stok), 0) AS UNSIGNED) AS total_stok
-     FROM barang b
-     LEFT JOIN batch_barang bg ON b.id = bg.barang_id
-     GROUP BY b.id
-     ORDER BY b.nama_barang ASC`,
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+exports.getBarang = async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT 
+        b.id,
+        b.nama_barang,
+        b.satuan,
+        CAST(IFNULL(s.total_stok, 0) AS UNSIGNED) AS total_stok
+      FROM barang b
+      LEFT JOIN (
+        SELECT barang_id, SUM(stok) AS total_stok
+        FROM batch_barang
+        GROUP BY barang_id
+      ) s ON b.id = s.barang_id
+      ORDER BY b.nama_barang ASC
+    `);
 
-      const parsedResults = results.map((item) => ({
-        ...item,
-        id: Number(item.id),
-        total_stok: Number(item.total_stok),
-      }));
+    const parsedResults = results.map((item) => ({
+      ...item,
+      id: Number(item.id),
+      total_stok: Number(item.total_stok),
+    }));
 
-      res.json(parsedResults);
-    }
-  );
+    res.json(parsedResults);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.getBatchBarang = (req, res) => {
-  db.query(
-    `SELECT 
-      bg.id,
-      bg.barang_id,
-      b.nama_barang,
-      bg.stok,
-      b.satuan,
-      CONVERT_TZ(bg.tanggal_kadaluarsa, '+00:00', '+07:00') AS tanggal_kadaluarsa,
-      DATEDIFF(
-        DATE(CONVERT_TZ(bg.tanggal_kadaluarsa, '+00:00', '+07:00')),
-        DATE(CONVERT_TZ(UTC_DATE(), '+00:00', '+07:00'))
-      ) AS hari_menuju_kadaluarsa
-    FROM batch_barang bg
-    JOIN barang b ON bg.barang_id = b.id
-    ORDER BY bg.tanggal_kadaluarsa ASC`,
-    (err, results) => {
-      if (err) {
-        console.error("Error getBatchBarang:", err);
-        return res.status(500).json({ error: err.message });
-      }
+exports.getBatchBarang = async (req, res) => {
+  try {
+    const [results] = await db.query(`
+      SELECT 
+        bg.id,
+        bg.barang_id,
+        b.nama_barang,
+        bg.stok,
+        b.satuan,
+        bg.tanggal_kadaluarsa,
+        DATEDIFF(
+          DATE(bg.tanggal_kadaluarsa),
+          CURDATE()
+        ) AS hari_menuju_kadaluarsa
+      FROM batch_barang bg
+      JOIN barang b ON bg.barang_id = b.id
+      ORDER BY bg.tanggal_kadaluarsa ASC
+    `);
 
-      const formattedResults = results.map(item => ({
-        ...item,
-        tanggal_kadaluarsa: new Date(item.tanggal_kadaluarsa).toISOString(),
-      }));
+    const formattedResults = results.map(item => ({
+      ...item,
+      tanggal_kadaluarsa: new Date(item.tanggal_kadaluarsa).toISOString(),
+    }));    
 
-      console.log("Data batch:", formattedResults);
-      res.json(formattedResults);
-    }
-  );
+    res.json(formattedResults);
+  } catch (err) {
+    console.error("Error getBatchBarang:", err);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.updateBarang = (req, res) => {
