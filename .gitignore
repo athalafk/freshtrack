@@ -36,6 +36,3 @@ Thumbs.db
 # Build files
 dist/
 build/
-
-hash.js
-test.js
