@@ -60,28 +60,26 @@ exports.getBatchBarang = async (req, res) => {
   }
 };
 
-exports.updateBarang = (req, res) => {
+exports.updateBarang = async (req, res) => {
   const { id } = req.params;
   const { nama_barang, satuan } = req.body;
 
-  console.log("Update Barang:", id, nama_barang, satuan); // Debugging
-
   if (!nama_barang || !satuan) {
-    return res
-      .status(400)
-      .json({ error: "Nama barang dan satuan wajib diisi." });
+    return res.status(400).json({ error: "Nama barang dan satuan wajib diisi." });
   }
 
-  const query = "UPDATE barang SET nama_barang = ?, satuan = ? WHERE id = ?";
-  db.query(query, [nama_barang, satuan, id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const [result] = await db.query(
+      "UPDATE barang SET nama_barang = ?, satuan = ? WHERE id = ?",
+      [nama_barang, satuan, id]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Barang tidak ditemukan." });
     }
 
     res.json({ message: "Barang berhasil diperbarui." });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
