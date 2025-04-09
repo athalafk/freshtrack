@@ -5,10 +5,16 @@ const {
   updateBarang,
 } = require("../controllers/barangController");
 
+const { authMiddleware, authorizeRoles } = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
+router.use(authMiddleware);
+
 router.get("/", getBarang);
-router.get("/batch-barang", getBatchBarang);
-router.put("/:id", updateBarang);
+
+router.get("/batch-barang", authorizeRoles("admin", "staf"), getBatchBarang);
+
+router.put("/:id", authorizeRoles("admin", "staf"), updateBarang);
 
 module.exports = router;
