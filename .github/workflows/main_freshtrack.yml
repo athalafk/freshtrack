@@ -32,6 +32,9 @@ jobs:
       - name: Run composer install if composer.json exists
         if: steps.check_files.outputs.files_exists == 'true'
         run: composer validate --no-check-publish && composer install --prefer-dist --no-dev --optimize-autoloader --no-progress
+      
+      - name: Make startup.sh executable
+        run: chmod +x startup.sh       
 
       - name: Zip artifact for deployment
         run: zip -r release.zip . -x "release.zip"
@@ -75,7 +78,5 @@ jobs:
           app-name: 'Freshtrack'
           slot-name: 'Production'
           package: .
-      
-      - name: Make startup.sh executable
-        run: chmod +x startup.sh        
+       
           
