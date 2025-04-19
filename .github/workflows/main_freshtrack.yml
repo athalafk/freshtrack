@@ -60,16 +60,13 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
-      - name: Make startup.sh executable
-        run: chmod +x startup.sh       
       
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_92EB41F050334DA6BA313ED567F80959 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D87DF6BA077D4B9DAE7CFB4FBE32A0D2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A0488F86CABF4EA8A79C17376FC0BF29 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_51173CDD40F04626A3B144383F22109C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5297D465C06F403BB46527EBDE0D702C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E2DAD6775E1B4079AD99AF1218BED774 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
