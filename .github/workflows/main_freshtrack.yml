@@ -75,15 +75,4 @@ jobs:
           app-name: 'Freshtrack'
           slot-name: 'Production'
           package: .
-
-       # **Check migrate status**
-      - name: Check if migrations are needed
-        run: |
-          php artisan migrate:status --database=mysql | grep 'No migrations found'
-      
-      # **Run Migrate if needed**
-      - name: Run Laravel Migrations
-        if: success()
-        run: |
-          php artisan migrate --force --seed
           
