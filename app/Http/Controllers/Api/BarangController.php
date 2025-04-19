@@ -54,5 +54,28 @@ class BarangController extends Controller
 
         return response()->json($results);
     }
+    
+    /**
+     * Update barang data.
+     */
+    public function updateBarang(Request $request, $id)
+    {
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'satuan' => 'required|string',
+        ]);
 
+        $barang = Barang::find($id);
+
+        if (!$barang) {
+            return response()->json(['error' => 'Barang tidak ditemukan.'], 404);
+        }
+
+        $barang->update([
+            'nama_barang' => $request->nama_barang,
+            'satuan' => $request->satuan,
+        ]);
+
+        return response()->json(['message' => 'Barang berhasil diperbarui.']);
+    }
 }
