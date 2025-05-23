@@ -78,4 +78,34 @@ class BarangController extends Controller
 
         return response()->json(['message' => 'Barang berhasil diperbarui.']);
     }
+    /**
+     * Menambahkan stok barang.
+     */
+    public function barangMasuk(Request $request)
+    {
+    $request->validate([
+        'nama_barang' => 'required|string',
+        'stok' => 'required|integer|min:1',
+        'tanggal_kadaluarsa' => 'required|date',
+    ]);
+
+    // Cek apakah barang dengan nama tersebut ada
+    $barang = Barang::where('nama_barang', $request->nama_barang)->first();
+
+    if (!$barang) {
+        return response()->json(['message' => 'Barang tidak ditemukan'], 404);
+    }
+
+    // Tambahkan stok ke batch_barang baru
+    $batch = new BatchBarang();
+    $batch->barang_id = $barang->id;
+    $batch->stok = $request->stok;
+    $batch->tanggal_kadaluarsa = $request->tanggal_kadaluarsa;
+    $batch->save();
+
+    return response()->json([
+        'message' => 'Stok barang berhasil ditambahkan',
+        'batch' => $batch,
+    ]);
+    }
 }

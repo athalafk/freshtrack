@@ -19,6 +19,7 @@ Route::prefix('barang')->group(function () {
         Route::get('/', [BarangController::class, 'getBarang']);
         Route::get('/batch-barang', [BarangController::class, 'getBatchBarang']);
         Route::put('/update/{id}', [BarangController::class, 'updateBarang']);
+        Route::post('/masuk', [BarangController::class, 'barangMasuk']);
     });
 });
 
