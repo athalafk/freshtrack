@@ -86,23 +86,21 @@ class BarangController extends Controller
     $request->validate([
         'nama_barang' => 'required|string',
         'stok' => 'required|integer|min:1',
-        'tanggal_kadaluarsa' => 'required|date',
+        'tanggal_kadaluarsa' => 'required|date|after_or_equal:today',
     ]);
-
-    // Cek apakah barang dengan nama tersebut ada
     $barang = Barang::where('nama_barang', $request->nama_barang)->first();
 
     if (!$barang) {
         return response()->json(['message' => 'Barang tidak ditemukan'], 404);
     }
-
-    // Tambahkan stok ke batch_barang baru
     $batch = new BatchBarang();
     $batch->barang_id = $barang->id;
     $batch->stok = $request->stok;
     $batch->tanggal_kadaluarsa = $request->tanggal_kadaluarsa;
     $batch->save();
 
+    // Tambahin implementasi history nanti
+        
     return response()->json([
         'message' => 'Stok barang berhasil ditambahkan',
         'batch' => $batch,
