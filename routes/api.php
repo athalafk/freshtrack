@@ -25,7 +25,12 @@ Route::prefix('barang')->group(function () {
     });
 });
 
-Route::get('/transactions', [TransactionController::class, 'index']);
+Route::prefix('transactions')->group(function () {
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [TransactionController::class, 'index']);
+    });
+});
+
 
 
 
