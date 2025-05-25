@@ -147,4 +147,33 @@ class BarangController extends Controller
             'batch' => $batch,
         ]);
     }
+
+    public function createBarang(Request $request){
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'satuan' => 'required|string'
+        ]);
+        $barang = Barang::where('nama_barang', $request->nama_barang)->first();
+
+        if ($barang) {
+            return response()->json(['message' => 'Barang sudah di registrasi'], 404);
+        }
+        $barang = new Barang();
+        $barang->nama_barang = $request->nama_barang;
+        $barang->satuan = $request->satuan;
+        $barang->save();
+
+        // Riwayat
+        Transaction::create([
+            'type' => 'tambah',
+            'item' => $barang->nama_barang,
+            'stock' => 0,
+            'actor' => $request->user()->username,
+        ]);
+            
+        return response()->json([
+            'message' => 'Barang berhasil di registrasi'
+        ]);
+    }
 }
+

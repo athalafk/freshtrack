@@ -23,6 +23,7 @@ Route::prefix('barang')->group(function () {
         Route::put('/update/{id}', [BarangController::class, 'updateBarang']);
         Route::delete('/delete/{id}', [BarangController::class, 'deleteBarang']);
         Route::post('/masuk', [BarangController::class, 'barangMasuk']);
+        Route::post('/create', [BarangController::class, 'createBarang']);
     });
 });
 
