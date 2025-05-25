@@ -124,7 +124,13 @@ class BarangController extends Controller
     $batch->tanggal_kadaluarsa = $request->tanggal_kadaluarsa;
     $batch->save();
 
-    // Tambahin implementasi history nanti
+    // Riwayat
+    Transaction::create([
+        'type' => 'masuk',
+        'item' => $barang->nama_barang,
+        'stock' => $request->stok,
+        'actor' => $request->user()->username, // pastikan middleware auth aktif
+    ]);
         
     return response()->json([
         'message' => 'Stok barang berhasil ditambahkan',
