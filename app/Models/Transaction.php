@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $table = 'transactions';
-    protected $fillable = ['date', 'type', 'item', 'stock', 'actor'];
-    public $timestamps = false; 
+    protected $fillable = ['type', 'item', 'stock', 'actor'];
+    protected $hidden = [
+        'updated_at', 
+    ];
 }

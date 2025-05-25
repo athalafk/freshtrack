@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\BatchBarang;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -74,6 +75,13 @@ class BarangController extends Controller
         $barang->update([
             'nama_barang' => $request->nama_barang,
             'satuan' => $request->satuan,
+        ]);
+
+        Transaction::create([
+            'type' => 'edit',
+            'item' => $request->nama_barang,
+            'stock' => 0,
+            'actor' => $request->user()->username,
         ]);
 
         return response()->json(['message' => 'Barang berhasil diperbarui.']);
