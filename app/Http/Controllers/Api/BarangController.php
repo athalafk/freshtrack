@@ -96,9 +96,19 @@ class BarangController extends Controller
             return response()->json(['error' => 'Barang tidak ditemukan.'], 404);
         }
 
+        $namabarang = $barang->nama_barang;
+        $stok = $barang->stok;
+
         BatchBarang::where('barang_id', $id)->delete();
         
         $barang->delete();
+
+        Transaction::create([
+            'type' => 'hapus',
+            'item' => $namabarang,
+            'stock' => $stok,
+            'actor' => $request->user()->username,
+        ]);
         
         return response()->json(['message' => 'Barang berhasil dihapus.']);
     }
@@ -108,33 +118,33 @@ class BarangController extends Controller
      */
     public function barangMasuk(Request $request)
     {
-    $request->validate([
-        'nama_barang' => 'required|string',
-        'stok' => 'required|integer|min:1',
-        'tanggal_kadaluarsa' => 'required|date|after_or_equal:today',
-    ]);
-    $barang = Barang::where('nama_barang', $request->nama_barang)->first();
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'stok' => 'required|integer|min:1',
+            'tanggal_kadaluarsa' => 'required|date|after_or_equal:today',
+        ]);
+        $barang = Barang::where('nama_barang', $request->nama_barang)->first();
 
-    if (!$barang) {
-        return response()->json(['message' => 'Barang tidak ditemukan'], 404);
-    }
-    $batch = new BatchBarang();
-    $batch->barang_id = $barang->id;
-    $batch->stok = $request->stok;
-    $batch->tanggal_kadaluarsa = $request->tanggal_kadaluarsa;
-    $batch->save();
+        if (!$barang) {
+            return response()->json(['message' => 'Barang tidak ditemukan'], 404);
+        }
+        $batch = new BatchBarang();
+        $batch->barang_id = $barang->id;
+        $batch->stok = $request->stok;
+        $batch->tanggal_kadaluarsa = $request->tanggal_kadaluarsa;
+        $batch->save();
 
-    // Riwayat
-    Transaction::create([
-        'type' => 'masuk',
-        'item' => $barang->nama_barang,
-        'stock' => $request->stok,
-        'actor' => $request->user()->username, // pastikan middleware auth aktif
-    ]);
-        
-    return response()->json([
-        'message' => 'Stok barang berhasil ditambahkan',
-        'batch' => $batch,
-    ]);
+        // Riwayat
+        Transaction::create([
+            'type' => 'masuk',
+            'item' => $barang->nama_barang,
+            'stock' => $request->stok,
+            'actor' => $request->user()->username,
+        ]);
+            
+        return response()->json([
+            'message' => 'Stok barang berhasil ditambahkan',
+            'batch' => $batch,
+        ]);
     }
 }
