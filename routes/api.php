@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController; 
 use App\Http\Controllers\Api\BarangController; 
+use App\Http\Controllers\Api\TransactionController; 
+
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
@@ -22,6 +24,8 @@ Route::prefix('barang')->group(function () {
         Route::post('/masuk', [BarangController::class, 'barangMasuk']);
     });
 });
+
+Route::get('/transactions', [TransactionController::class, 'index']);
 
 
 
