@@ -78,6 +78,23 @@ class BarangController extends Controller
 
         return response()->json(['message' => 'Barang berhasil diperbarui.']);
     }
+
+    public function deleteBarang($id)
+    {
+        $barang = Barang::find($id);
+        
+        if (!$barang)
+        {
+            return response()->json(['error' => 'Barang tidak ditemukan.'], 404);
+        }
+
+        BatchBarang::where('barang_id', $id)->delete();
+        
+        $barang->delete();
+        
+        return response()->json(['message' => 'Barang berhasil dihapus.']);
+    }
+    
     /**
      * Menambahkan stok barang.
      */

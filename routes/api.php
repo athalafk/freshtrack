@@ -21,11 +21,9 @@ Route::prefix('barang')->group(function () {
         Route::get('/', [BarangController::class, 'getBarang']);
         Route::get('/batch-barang', [BarangController::class, 'getBatchBarang']);
         Route::put('/update/{id}', [BarangController::class, 'updateBarang']);
+        Route::delete('/delete/{id}', [BarangController::class, 'deleteBarang']);
         Route::post('/masuk', [BarangController::class, 'barangMasuk']);
     });
 });
 
 Route::get('/transactions', [TransactionController::class, 'index']);
-
-
-
