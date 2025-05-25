@@ -87,29 +87,28 @@ class BarangController extends Controller
         return response()->json(['message' => 'Barang berhasil diperbarui.']);
     }
 
-    public function deleteBarang($id)
+    public function deleteBarang(Request $request, $id)
     {
         $barang = Barang::find($id);
-        
-        if (!$barang)
-        {
+
+        if (!$barang) {
             return response()->json(['error' => 'Barang tidak ditemukan.'], 404);
         }
 
-        $namabarang = $barang->nama_barang;
-        $stok = $barang->stok;
+        $namaBarangDihapus = $barang->nama_barang;
+        $totalStokDihapus = BatchBarang::where('barang_id', $id)->sum('stok');
 
         BatchBarang::where('barang_id', $id)->delete();
-        
+
         $barang->delete();
 
         Transaction::create([
             'type' => 'hapus',
-            'item' => $namabarang,
-            'stock' => $stok,
+            'item' => $namaBarangDihapus,
+            'stock' => $totalStokDihapus,
             'actor' => $request->user()->username,
         ]);
-        
+
         return response()->json(['message' => 'Barang berhasil dihapus.']);
     }
     
@@ -176,4 +175,3 @@ class BarangController extends Controller
         ]);
     }
 }
-
