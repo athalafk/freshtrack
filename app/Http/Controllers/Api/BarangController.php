@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\BatchBarang;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class BarangController extends Controller
 {
@@ -214,7 +215,7 @@ class BarangController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Barang Keluar Error: ' . $e->getMessage());
+            Log::error('Barang Keluar Error: ' . $e->getMessage());
             return response()->json(['message' => 'Gagal mengeluarkan barang: ' . $e->getMessage()], 500);
         }
     }

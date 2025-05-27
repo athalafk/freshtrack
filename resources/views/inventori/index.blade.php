@@ -6,6 +6,20 @@
 @section('content')
     <div x-data="{ activeTab: 'daftarBarang' }" class="container mx-auto">
 
+        {{-- Inisialisasi Alpine.js untuk modal --}}
+        <div x-data="{
+            activeTab: 'daftarBarang',
+            isEditModalOpen: false,
+            editingItem: { id: null, nama_barang: '', satuan: '' },
+            predefinedUnits: ['kg', 'liter', 'pcs', 'pack', 'unit', 'gram', 'ml'],
+            openEditModal(item) {
+                this.editingItem.id = item.id;
+                this.editingItem.nama_barang = item.nama_barang;
+                this.editingItem.satuan = item.satuan;
+                this.isEditModalOpen = true;
+            }
+        }" class="container mx-auto">
+
         {{-- Navigasi Tab --}}
         <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
             <nav class="flex -mb-px space-x-8" aria-label="Tabs">
@@ -22,12 +36,28 @@
             </nav>
         </div>
 
+        {{-- Flash Messages for Success/Error --}}
+        @if (session('success'))
+            <div class="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800" role="alert">
+                <span class="font-medium">Success!</span> {{ session('success') }}
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800" role="alert">
+                <span class="font-medium">Error!</span> {{ session('error') }}
+            </div>
+        @endif
+        @if (session('info'))
+            <div class="mb-4 p-4 text-sm text-blue-700 bg-blue-100 rounded-lg dark:bg-blue-200 dark:text-blue-800" role="alert">
+                <span class="font-medium">Info!</span> {{ session('info') }}
+            </div>
+        @endif
+
         {{-- Search Bar --}}
         <div class="mb-6">
             <form method="GET" action="{{ route('inventori.index') }}">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        {{-- Ganti SVG dengan Font Awesome --}}
                         <i class="fas fa-search text-gray-400 w-5 h-5"></i>
                     </div>
                     <input type="search" name="search" id="search" value="{{ $searchTerm ?? '' }}"
@@ -57,14 +87,20 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->total_stok }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->satuan }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="#" class="text-sky-600 hover:text-sky-900 mr-3" title="Edit">
-                                        {{-- Ganti SVG dengan Font Awesome --}}
+                                    <button type="button" @click="openEditModal({
+                                        id: {{ $item->id }},
+                                        nama_barang: '{{ addslashes($item->nama_barang) }}',
+                                        satuan: '{{ $item->satuan }}'
+                                    })" class="text-sky-600 hover:text-sky-900 mr-3" title="Edit">
                                         <i class="fas fa-edit fa-fw"></i>
-                                    </a>
-                                    <button type="button" class="text-red-600 hover:text-red-900" title="Hapus">
-                                        {{-- Ganti SVG dengan Font Awesome --}}
-                                        <i class="fas fa-trash-alt fa-fw"></i>
                                     </button>
+                                    <form action="{{ route('inventori.delete', $item->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang ini beserta seluruh batch stoknya?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
+                                            <i class="fas fa-trash-alt fa-fw"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty
@@ -114,17 +150,14 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                     @if ($batch->hari_menuju_kadaluarsa > 14)
                                         <span class="text-green-500" title="Aman">
-                                            {{-- Ganti SVG dengan Font Awesome --}}
                                             <i class="fas fa-check-circle fa-lg"></i>
                                         </span>
                                     @elseif ($batch->hari_menuju_kadaluarsa >= 0 && $batch->hari_menuju_kadaluarsa <= 14)
                                         <span class="text-yellow-500" title="Segera Periksa">
-                                            {{-- Ganti SVG dengan Font Awesome --}}
                                             <i class="fas fa-exclamation-triangle fa-lg"></i>
                                         </span>
                                     @else
                                         <span class="text-red-500" title="Kadaluwarsa">
-                                            {{-- Ganti SVG dengan Font Awesome --}}
                                             <i class="fas fa-times-circle fa-lg"></i>
                                         </span>
                                     @endif
@@ -142,6 +175,55 @@
                      {{ $statusKadaluarsa->appends(request()->query())->links() }}
                 </div>
                 @endif
+            </div>
+        </div>
+
+        {{-- Edit Modal --}}
+        <div x-show="isEditModalOpen" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50"  {{-- Diubah menjadi bg-black/50 --}}
+            @keydown.escape.window="isEditModalOpen = false">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0" @click.away="isEditModalOpen = false">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold" x-text="'Edit Barang: ' + editingItem.nama_barang"></h2>
+                    <button @click="isEditModalOpen = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form :action="'{{ url('inventori') }}/' + editingItem.id" method="POST" x-ref="editForm">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="mb-4">
+                        <label for="modal_nama_barang" class="block mb-2 text-sm font-medium text-gray-900">Nama Barang</label>
+                        <input type="text" name="nama_barang" id="modal_nama_barang" x-model="editingItem.nama_barang"
+                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
+                               required>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="modal_satuan" class="block mb-2 text-sm font-medium text-gray-900">Satuan</label>
+                        <select name="satuan" id="modal_satuan" x-model="editingItem.satuan"
+                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
+                                required>
+                            <option value="">Pilih Satuan...</option>
+                            <template x-for="unit in predefinedUnits" :key="unit">
+                                <option :value="unit" x-text="unit.charAt(0).toUpperCase() + unit.slice(1)"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-end space-x-4">
+                        <button type="button" @click="isEditModalOpen = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-gray-100">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 focus:ring-4 focus:outline-none focus:ring-sky-300">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

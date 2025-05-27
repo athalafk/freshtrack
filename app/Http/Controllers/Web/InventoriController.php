@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Controller;
+use Carbon\Carbon;
+use App\Models\Barang;
+use App\Models\BatchBarang;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class InventoriController extends Controller
 {
@@ -41,9 +45,9 @@ class InventoriController extends Controller
                 'bg.tanggal_kadaluarsa',
                 DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE()) AS hari_menuju_kadaluarsa')
             );
-        
+
         if ($searchTerm) {
-             $queryBatch->where('b.nama_barang', 'like', '%' . $searchTerm . '%');
+            $queryBatch->where('b.nama_barang', 'like', '%' . $searchTerm . '%');
         }
         $statusKadaluarsa = $queryBatch->orderBy('bg.tanggal_kadaluarsa', 'asc')
             ->paginate(10, ['*'], 'batchPage')
@@ -51,8 +55,50 @@ class InventoriController extends Controller
                 $item->tanggal_kadaluarsa_formatted = Carbon::parse($item->tanggal_kadaluarsa)->isoFormat('DD/MM/YYYY');
                 return $item;
             });
-            
+
 
         return view('inventori.index', compact('daftarBarang', 'statusKadaluarsa', 'searchTerm'));
+    }
+
+    public function update(Request $request, Barang $barang)
+    {
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'satuan' => 'required|string',
+        ]);
+
+        $barang->update([
+            'nama_barang' => $request->nama_barang,
+            'satuan' => $request->satuan,
+        ]);
+
+        Transaction::create([
+            'type' => 'edit',
+            'item' => $barang->nama_barang,
+            'stock' => 0,
+            'actor' => Auth::user()->username
+        ]);
+
+        return redirect()->route('inventori.index')
+            ->with('success', 'Barang berhasil diperbarui.');
+    }
+
+    public function delete(Barang $barang)
+    {
+        $namaBarangDiHapus = $barang->nama_barang;
+        $totalStokDiHapus = BatchBarang::where('barang_id', $barang->id)->sum('stok');
+
+        BatchBarang::where('barang_id', $barang->id)->delete();
+        $barang->delete();
+
+        Transaction::create([
+            'type' => 'hapus',
+            'item' => $namaBarangDiHapus,
+            'stock' => $totalStokDiHapus,
+            'actor' => Auth::user()->username
+        ]);
+
+        return redirect()->route('inventori.index')
+            ->with('success', 'Barang berhasil dihapus.');
     }
 }
