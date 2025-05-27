@@ -33,6 +33,25 @@ jobs:
         if: steps.check_files.outputs.files_exists == 'true'
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check if package.json exists
+        id: check_files_npm
+        uses: andstor/file-existence-action@v1
+        with:
+          files: 'package.json'
+
+      - name: Install NPM Dependencies
+        if: steps.check_files_npm.outputs.files_exists == 'true'
+        run: npm install
+
+      - name: Build Frontend Assets
+        if: steps.check_files_npm.outputs.files_exists == 'true'
+        run: npm run build
+
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
