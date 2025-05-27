@@ -4,11 +4,12 @@
 @section('page-title', 'Inventori')
 
 @section('content')
-    <div x-data="{ activeTab: 'daftarBarang' }" class="container mx-auto">
+@php $defaultTab = request('tab', 'daftarBarang'); @endphp
+    <div x-data="{ activeTab: '{{ $defaultTab }}' }" class="container mx-auto">
 
         {{-- Inisialisasi Alpine.js untuk modal --}}
         <div x-data="{
-            activeTab: 'daftarBarang',
+            activeTab: '{{ $defaultTab }}',
             isEditModalOpen: false,
             editingItem: { id: null, nama_barang: '', satuan: '' },
             predefinedUnits: ['kg', 'liter', 'pcs', 'pack', 'unit', 'gram', 'ml'],
@@ -23,12 +24,14 @@
         {{-- Navigasi Tab --}}
         <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
             <nav class="flex -mb-px space-x-8" aria-label="Tabs">
-                <button @click="activeTab = 'daftarBarang'"
+                <button
+                    @click="activeTab = 'daftarBarang'; $nextTick(() => window.location.href='{{ route('inventori.index', ['tab' => 'daftarBarang']) }}')"
                     :class="{ 'border-sky-500 text-sky-600': activeTab === 'daftarBarang', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'daftarBarang' }"
                     class="px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 focus:outline-none">
                     Daftar Barang
                 </button>
-                <button @click="activeTab = 'statusKadaluarsa'"
+                <button
+                    @click="activeTab = 'statusKadaluarsa'; $nextTick(() => window.location.href='{{ route('inventori.index', ['tab' => 'statusKadaluarsa']) }}')"
                     :class="{ 'border-sky-500 text-sky-600': activeTab === 'statusKadaluarsa', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'statusKadaluarsa' }"
                     class="px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 focus:outline-none">
                     Status Kadaluarsa
@@ -112,7 +115,7 @@
                 </table>
                 @if($daftarBarang->hasPages())
                 <div class="p-4">
-                    {{ $daftarBarang->appends(request()->query())->links() }}
+                    {{ $daftarBarang->appends(request()->except('page') + ['tab' => 'daftarBarang'])->links() }}
                 </div>
                 @endif
             </div>
@@ -140,7 +143,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $batch->tanggal_kadaluarsa_formatted }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm {{ $batch->hari_menuju_kadaluarsa <= 0 ? 'text-red-600 font-semibold' : ($batch->hari_menuju_kadaluarsa <= 14 ? 'text-yellow-600 font-semibold' : 'text-gray-500') }}">
                                     @if ($batch->hari_menuju_kadaluarsa < 0)
-                                        Sudah Kadaluwarsa
+                                        Sudah Kadaluarsa
                                     @elseif ($batch->hari_menuju_kadaluarsa == 0)
                                         Hari Ini
                                     @else
@@ -157,7 +160,7 @@
                                             <i class="fas fa-exclamation-triangle fa-lg"></i>
                                         </span>
                                     @else
-                                        <span class="text-red-500" title="Kadaluwarsa">
+                                        <span class="text-red-500" title="Kadaluarsa">
                                             <i class="fas fa-times-circle fa-lg"></i>
                                         </span>
                                     @endif
@@ -172,7 +175,7 @@
                 </table>
                 @if($statusKadaluarsa->hasPages())
                 <div class="p-4">
-                     {{ $statusKadaluarsa->appends(request()->query())->links() }}
+                    {{ $statusKadaluarsa->appends(request()->except('page') + ['tab' => 'statusKadaluarsa'])->links() }}
                 </div>
                 @endif
             </div>
