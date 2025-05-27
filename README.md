@@ -1,5 +1,5 @@
 # Freshtrack - Laravel (API dan Web)
-FreshTrack adalah aplikasi manajemen inventaris yang dirancang untuk membantu restoran atau bisnis kuliner melacak masa kedaluwarsa bahan baku, mengelola stok barang masuk dan keluar, serta memantau riwayat transaksi. Backend ini dibangun menggunakan Laravel dan menyediakan API untuk diintegrasikan dengan aplikasi frontend.
+FreshTrack adalah aplikasi manajemen inventaris yang dirancang untuk membantu restoran atau bisnis kuliner melacak masa kedaluarsa bahan baku, mengelola stok barang masuk dan keluar, serta memantau riwayat transaksi. Backend ini dibangun menggunakan Laravel dan menyediakan API untuk diintegrasikan dengan aplikasi frontend.
 
 ## Fitur Utama
 - Autentikasi Pengguna: Sistem login untuk admin dan staf dengan menggunakan Laravel Sanctum untuk autentikasi berbasis token.
@@ -27,7 +27,7 @@ Sebelum memulai, pastikan Anda memiliki perangkat lunak berikut terinstal di sis
 ## Instalasi
 **1. Clone Repositori**:
 ```bash
-git clone https://github.com/athalafk/freshtrack-postman.git
+git clone https://github.com/athalafk/freshtrack-backend.git
 cd freshtrack-backend
 ```
 Jika tidak, pastikan Anda berada di direktori root proyek Anda.
