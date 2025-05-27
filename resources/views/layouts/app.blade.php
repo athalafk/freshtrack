@@ -15,10 +15,13 @@
     @stack('styles')
 </head>
 <body class="font-sans antialiased bg-gray-100">
-    <div x-data="{ sidebarOpen: false }" class="flex h-screen bg-gray-100">
+    <div x-data="{ sidebarOpen: true }" class="flex h-screen bg-gray-100 relative">
         @include('layouts.partials.sidebar')
 
-        <div class="flex flex-col flex-1 overflow-hidden">
+        <div
+            class="flex flex-col flex-1 overflow-hidden transition-all duration-300"
+            :class="{ 'ml-64': sidebarOpen, 'ml-0': !sidebarOpen }"
+        >
             @include('layouts.partials.navbar')
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">

@@ -1,6 +1,9 @@
 <header class="flex items-center justify-between px-6 py-3 bg-[#4796BD] text-white shadow-md relative z-30">
     <div class="flex items-center">
-        <div class="relative mx-4 lg:mx-0">
+        <button @click="sidebarOpen = !sidebarOpen" class="mr-4 text-white">
+            <i class="fas fa-bars fa-lg"></i>
+        </button>
+        <div class="relative">
             <h1 class="text-xl font-semibold text-white">@yield('page-title', 'Inventori')</h1>
         </div>
     </div>

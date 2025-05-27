@@ -1,7 +1,7 @@
 <aside
-    class="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto transition duration-300 ease-in-out transform bg-[#4796BD] text-white lg:translate-x-0 lg:static lg:inset-0"
-    :class="{'translate-x-0 ease-out': sidebarOpen, '-translate-x-full ease-in': !sidebarOpen}">
-
+    class="fixed inset-y-0 left-0 z-30 w-64 bg-[#4796BD] text-white transition-transform duration-300"
+    :class="{ 'translate-x-0': sidebarOpen, '-translate-x-full': !sidebarOpen }"
+>
     <div class="flex items-center justify-center p-4 bg-[#4796BD]">
         <a href="{{ route('inventori.index') }}" class="flex items-center">
             <img src="{{ asset('images/logo3.png') }}" alt="Freshtrack Logo" class="w-10 h-auto mr-2">
