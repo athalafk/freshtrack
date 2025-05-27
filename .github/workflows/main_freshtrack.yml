@@ -52,12 +52,6 @@ jobs:
         if: steps.check_files_npm.outputs.files_exists == 'true'
         run: npm run build
 
-      - name: Laravel Optimizations
-        run: |
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
