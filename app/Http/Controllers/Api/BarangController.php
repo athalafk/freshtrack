@@ -146,6 +146,78 @@ class BarangController extends Controller
             'batch' => $batch,
         ]);
     }
+    /**
+     * Mengurangi stok barang.
+     */
+    public function barangKeluar(Request $request)
+    {
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'stok' => 'required|integer|min:1',
+        ]);
+
+        $barang = Barang::where('nama_barang', $request->nama_barang)->first();
+
+        if (!$barang) {
+            return response()->json(['message' => 'Barang tidak ditemukan'], 404);
+        }
+
+        $totalStok = BatchBarang::where('barang_id', $barang->id)
+                                ->whereDate('tanggal_kadaluarsa', '>=', now())
+                                ->sum('stok');
+
+        if ($request->stok > $totalStok) {
+            return response()->json(['message' => 'Stok tidak mencukupi atau sudah kadaluwarsa'], 400);
+        }
+
+        $stokDiminta = $request->stok;
+
+        $batches = BatchBarang::where('barang_id', $barang->id)
+                             ->whereDate('tanggal_kadaluarsa', '>=', now())
+                             ->orderBy('tanggal_kadaluarsa', 'asc')
+                             ->get();
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($batches as $batch) {
+                if ($stokDiminta <= 0) {
+                    break;
+                }
+
+                if ($batch->stok >= $stokDiminta) {
+                    $batch->stok -= $stokDiminta;
+                    $stokDiminta = 0;
+
+                    if ($batch->stok == 0) {
+                        $batch->delete();
+                    } else {
+                        $batch->save(); 
+                    }
+                } else {
+                    $stokDiminta -= $batch->stok;
+                    $batch->delete();
+                }
+            }
+
+            // Catat riwayat transaksi
+            Transaction::create([
+                'type' => 'keluar',
+                'item' => $barang->nama_barang,
+                'stock' => $request->stok,
+                'actor' => $request->user()->username,
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Barang berhasil dikeluarkan']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Barang Keluar Error: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal mengeluarkan barang: ' . $e->getMessage()], 500);
+        }
+    }
 
     public function createBarang(Request $request){
         $request->validate([
