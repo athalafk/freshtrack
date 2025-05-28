@@ -15,7 +15,17 @@
     @stack('styles')
 </head>
 <body class="font-sans antialiased bg-gray-100">
-    <div x-data="{ sidebarOpen: true }" class="flex h-screen bg-gray-100 relative">
+    <div 
+        x-data="{
+            sidebarOpen: JSON.parse(localStorage.getItem('sidebarOpen') ?? 'true'),
+            toggleSidebar() {
+                this.sidebarOpen = !this.sidebarOpen;
+                localStorage.setItem('sidebarOpen', JSON.stringify(this.sidebarOpen));
+            }
+        }"
+        x-init="$watch('sidebarOpen', val => localStorage.setItem('sidebarOpen', JSON.stringify(val)))"
+        class="flex h-screen bg-gray-100 relative"
+    >
         @include('layouts.partials.sidebar')
 
         <div

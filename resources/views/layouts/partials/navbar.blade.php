@@ -1,6 +1,6 @@
 <header class="flex items-center justify-between px-6 py-3 bg-[#4796BD] text-white shadow-md relative z-30">
     <div class="flex items-center">
-        <button @click="sidebarOpen = !sidebarOpen" class="mr-4 text-white">
+        <button @click="toggleSidebar" class="mr-4 text-white">
             <i class="fas fa-bars fa-lg"></i>
         </button>
         <div class="relative">

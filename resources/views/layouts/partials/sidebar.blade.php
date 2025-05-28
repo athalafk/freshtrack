@@ -11,31 +11,35 @@
 
     <nav class="mt-4">
         {{-- Inventori --}}
-        <a class="flex items-center px-6 py-3 text-gray-100 {{ request()->routeIs('inventori.index') ? 'bg-[#4796BD]' : 'hover:bg-[#4796BD]' }}"
+        <a class="flex items-center px-6 py-3 text-gray-100 {{ request()->routeIs('inventori.index') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('inventori.index') }}">
             <i class="fas fa-warehouse fa-fw w-5 mr-3"></i>
-            Inventori
+            <span>Inventori</span>
         </a>
 
-        {{-- Daftar Barang --}}
-        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('barang.create') ? 'bg-[#4796BD]' : 'hover:bg-[#4796BD]' }}"
+        {{-- Daftar Barang (Admin Only) --}}
+        @if (Auth::check() && Auth::user()->role === 'admin')
+        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('barang.create') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('barang.create') }}">
             <i class="fas fa-plus-square fa-fw w-5 mr-3"></i>
-            <span class="mx-3">Daftar Barang</span>
+            <span>Daftar Barang</span>
         </a>
+        @endif
 
         {{-- Transaksi --}}
-        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('transaksi.index') ? 'bg-[#4796BD]' : 'hover:bg-[#4796BD]' }}"
+        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('transaksi.index') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('transaksi.index') }}">
             <i class="fas fa-exchange-alt fa-fw w-5 mr-3"></i>
-            <span class="mx-3">Transaksi</span>
+            <span>Transaksi</span>
         </a>
 
-        {{-- Riwayat --}}
-        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('riwayat.index') ? 'bg-[#4796BD]' : 'hover:bg-[#4796BD]' }}"
+        {{-- Riwayat (Admin Only) --}}
+        @if (Auth::check() && Auth::user()->role === 'admin')
+        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('riwayat.index') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('riwayat.index') }}">
             <i class="fas fa-history fa-fw w-5 mr-3"></i>
-            <span class="mx-3">Riwayat</span>
+            <span>Riwayat</span>
         </a>
+        @endif
     </nav>
 </aside>
