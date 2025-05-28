@@ -18,7 +18,7 @@ class InventoriController extends Controller
     public function index(Request $request)
     {
         $searchTerm = $request->input('search');
-        $sortBy = $request->input('sort_by', 'nama_barang'); 
+        $sortBy = $request->input('sort_by', 'tanggal_kadaluarsa'); 
         $sortDirection = $request->input('sort_direction', 'asc'); 
 
         $sortDirection = in_array(strtolower($sortDirection), ['asc', 'desc']) ? strtolower($sortDirection) : 'asc';
@@ -167,5 +167,41 @@ class InventoriController extends Controller
 
         return redirect()->route('inventori.index')
             ->with('success', 'Barang berhasil dihapus.');
+    }
+
+    public function showBarangMasuk()
+    {   
+    $barangList = Barang::all();
+    return view('transaksi.barang-masuk', compact('barangList'));
+    }
+
+public function storeBarangMasuk(Request $request)
+    {
+    $request->validate([
+        'nama_barang' => 'required|string',
+        'stok' => 'required|integer|min:1',
+        'tanggal_kadaluarsa' => 'required|date',
+    ]);
+
+    $barang = Barang::where('nama_barang', $request->nama_barang)->first();
+
+    if (!$barang) {
+        return back()->with('error', 'Barang tidak ditemukan.');
+    }
+
+    BatchBarang::create([
+        'barang_id' => $barang->id,
+        'stok' => $request->stok,
+        'tanggal_kadaluarsa' => $request->tanggal_kadaluarsa,
+    ]);
+
+    Transaction::create([
+        'type' => 'masuk',
+        'item' => $barang->nama_barang,
+        'stock' => $request->stok,
+        'actor' => Auth::user()->username,
+    ]);
+
+    return back()->with('success', 'Barang masuk berhasil disimpan.');
     }
 }

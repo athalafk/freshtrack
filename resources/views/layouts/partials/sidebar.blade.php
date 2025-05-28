@@ -27,8 +27,8 @@
         @endif
 
         {{-- Transaksi --}}
-        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('transaksi.index') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
-            href="{{ route('transaksi.index') }}">
+        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('transaksi.barang-masuk') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
+            href="{{ route('transaksi.barang-masuk') }}">
             <i class="fas fa-exchange-alt fa-fw w-5 mr-3"></i>
             <span>Transaksi</span>
         </a>

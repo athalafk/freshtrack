@@ -25,6 +25,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/inventori/{barang}', [InventoriController::class, 'update'])->name('inventori.update');
     Route::delete('/inventori/{barang}', [InventoriController::class, 'delete'])->name('inventori.delete');
 
+     Route::get('/transaksi/barang-masuk', [InventoriController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
+    Route::post('/transaksi/barang-masuk', [InventoriController::class, 'storeBarangMasuk'])->name('transaksi.barang-masuk.store');
+
     Route::get('/transaksi', function () {
         return redirect()->route('inventori.index')->with('info', 'Halaman Transaksi belum tersedia.');
     })->name('transaksi.index');
