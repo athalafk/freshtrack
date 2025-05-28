@@ -18,8 +18,14 @@ class InventoriController extends Controller
     public function index(Request $request)
     {
         $searchTerm = $request->input('search');
+        $sortBy = $request->input('sort_by', 'nama_barang'); 
+        $sortDirection = $request->input('sort_direction', 'asc'); 
 
-        // Data untuk "Daftar Barang"
+        $sortDirection = in_array(strtolower($sortDirection), ['asc', 'desc']) ? strtolower($sortDirection) : 'asc';
+
+        $validSortColumnsBarang = ['nama_barang', 'total_stok', 'satuan'];
+        $sortByBarang = in_array($sortBy, $validSortColumnsBarang) ? $sortBy : 'nama_barang';
+
         $queryBarang = DB::table('barang as b')
             ->leftJoin(DB::raw('(SELECT barang_id, SUM(stok) as total_stok FROM batch_barang GROUP BY barang_id) as s'), 'b.id', '=', 's.barang_id')
             ->select(
@@ -32,10 +38,20 @@ class InventoriController extends Controller
         if ($searchTerm) {
             $queryBarang->where('b.nama_barang', 'like', '%' . $searchTerm . '%');
         }
-        $daftarBarang = $queryBarang->orderBy('b.nama_barang', 'asc')->paginate(10, ['*'], 'barangPage');
+
+        if ($sortByBarang === 'total_stok') {
+            $queryBarang->orderBy(DB::raw('COALESCE(s.total_stok, 0)'), $sortDirection);
+        } else {
+            $queryBarang->orderBy('b.' . $sortByBarang, $sortDirection);
+        }
+
+        $daftarBarang = $queryBarang->paginate(10, ['*'], 'barangPage');
 
 
         // Data untuk "Status Kadaluarsa"
+        $validSortColumnsBatch = ['nama_barang', 'stok', 'tanggal_kadaluarsa', 'hari_menuju_kadaluarsa'];
+        $sortByBatch = in_array($sortBy, $validSortColumnsBatch) ? $sortBy : 'tanggal_kadaluarsa';
+
         $queryBatch = DB::table('batch_barang as bg')
             ->join('barang as b', 'bg.barang_id', '=', 'b.id')
             ->select(
@@ -51,7 +67,18 @@ class InventoriController extends Controller
         if ($searchTerm) {
             $queryBatch->where('b.nama_barang', 'like', '%' . $searchTerm . '%');
         }
-        $statusKadaluarsa = $queryBatch->orderBy('bg.tanggal_kadaluarsa', 'asc')
+
+        if ($sortByBatch === 'nama_barang') {
+            $queryBatch->orderBy('b.nama_barang', $sortDirection);
+        } elseif ($sortByBatch === 'hari_menuju_kadaluarsa') {
+            $queryBatch->orderBy(DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE())'), $sortDirection);
+        } elseif (in_array($sortByBatch, ['stok', 'tanggal_kadaluarsa'])) {
+             $queryBatch->orderBy('bg.' . $sortByBatch, $sortDirection);
+        } else {
+            $queryBatch->orderBy('bg.tanggal_kadaluarsa', 'asc');
+        }
+
+        $statusKadaluarsa = $queryBatch->orderBy($sortByBatch === 'nama_barang' ? 'b.nama_barang' : ($sortByBatch === 'hari_menuju_kadaluarsa' ? DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE())') : 'bg.' . $sortByBatch), $sortDirection)
             ->paginate(10, ['*'], 'batchPage')
             ->through(function ($item) {
                 $item->tanggal_kadaluarsa_formatted = Carbon::parse($item->tanggal_kadaluarsa)->isoFormat('DD/MM/YYYY');
@@ -59,7 +86,13 @@ class InventoriController extends Controller
             });
 
 
-        return view('inventori.index', compact('daftarBarang', 'statusKadaluarsa', 'searchTerm'));
+        return view('inventori.index', compact(
+            'daftarBarang',
+            'statusKadaluarsa',
+            'searchTerm',
+            'sortBy',
+            'sortDirection'
+        ));
     }
 
     public function update(Request $request, Barang $barang)

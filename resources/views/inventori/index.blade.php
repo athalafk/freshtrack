@@ -3,6 +3,31 @@
 @section('title', 'Inventori')
 @section('page-title', 'Inventori')
 
+@php
+function sort_link($column, $title, $currentSortBy, $currentSortDirection, $currentTab) {
+    $direction = ($currentSortBy == $column && $currentSortDirection == 'asc') ? 'desc' : 'asc';
+    $icon = '';
+    if ($currentSortBy == $column) {
+        $icon = $currentSortDirection == 'asc' ? '<i class="fas fa-sort-up ml-1"></i>' : '<i class="fas fa-sort-down ml-1"></i>';
+    } else {
+        $icon = '<i class="fas fa-sort text-gray-400 ml-1"></i>';
+    }
+
+    $queryParams = request()->query();
+
+    $queryParams['tab'] = $currentTab;
+    $queryParams['sort_by'] = $column;
+    $queryParams['sort_direction'] = $direction;
+
+    unset($queryParams['barangPage']);
+    unset($queryParams['batchPage']);
+
+    $url = route('inventori.index', $queryParams);
+
+    return '<a href="' . $url . '" class="flex items-center hover:text-sky-800">' . e($title) . $icon . '</a>';
+}
+@endphp
+
 @section('content')
 @php $defaultTab = request('tab', 'daftarBarang'); @endphp
     <div 
@@ -74,18 +99,18 @@
         {{-- Navigasi Tab --}}
         <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
             <nav class="flex -mb-px space-x-8" aria-label="Tabs">
-                <button
-                    @click="activeTab = 'daftarBarang'; $nextTick(() => window.location.href='{{ route('inventori.index', ['tab' => 'daftarBarang']) }}')"
+                <a href="{{ route('inventori.index', array_merge(request()->query(), ['tab' => 'daftarBarang', 'barangPage' => null, 'batchPage' => null])) }}"
+                    @click.prevent="activeTab = 'daftarBarang'; window.location.href=$el.href"
                     :class="{ 'border-sky-500 text-sky-600': activeTab === 'daftarBarang', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'daftarBarang' }"
                     class="px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 focus:outline-none">
                     Daftar Barang
-                </button>
-                <button
-                    @click="activeTab = 'statusKadaluarsa'; $nextTick(() => window.location.href='{{ route('inventori.index', ['tab' => 'statusKadaluarsa']) }}')"
-                    :class="{ 'border-sky-500 text-sky-600': activeTab === 'statusKadaluarsa', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'statusKadaluarsa' }"
-                    class="px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 focus:outline-none">
-                    Status Kadaluarsa
-                </button>
+                </a>
+                <a href="{{ route('inventori.index', array_merge(request()->query(), ['tab' => 'statusKadaluarsa', 'barangPage' => null, 'batchPage' => null])) }}"
+                   @click.prevent="activeTab = 'statusKadaluarsa'; window.location.href=$el.href"
+                   :class="{ 'border-sky-500 text-sky-600': activeTab === 'statusKadaluarsa', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'statusKadaluarsa' }"
+                   class="px-1 py-4 text-sm font-medium whitespace-nowrap border-b-2 focus:outline-none">
+                   Status Kadaluarsa
+                </a>
             </nav>
         </div>
 
@@ -109,6 +134,9 @@
         {{-- Search Bar --}}
         <div class="mb-6">
             <form method="GET" action="{{ route('inventori.index') }}">
+                <input type="hidden" name="tab" :value="activeTab">
+                <input type="hidden" name="sort_by" value="{{ $sortBy }}">
+                <input type="hidden" name="sort_direction" value="{{ $sortDirection }}">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <i class="fas fa-search text-gray-400 w-5 h-5"></i>
@@ -127,10 +155,18 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Barang</th>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Stok</th>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Satuan</th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('nama_barang', 'Barang', $sortBy, $sortDirection, 'daftarBarang') !!}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('total_stok', 'Stok', $sortBy, $sortDirection, 'daftarBarang') !!}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('satuan', 'Satuan', $sortBy, $sortDirection, 'daftarBarang') !!}
+                            </th>
+                            @if (auth()->user()?->role === 'admin')
                             <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Aksi</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -139,6 +175,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $item->nama_barang }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->total_stok }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->satuan }}</td>
+                                @if (auth()->user()?->role === 'admin')
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <button type="button" @click="openEditModal({
                                         id: {{ $item->id }},
@@ -155,10 +192,11 @@
                                         <i class="fas fa-trash-alt fa-fw"></i>
                                     </button>
                                 </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-4 text-sm text-center text-gray-500">Tidak ada data barang.</td>
+                                <td colspan="{{ auth()->user()?->role === 'admin' ? '4' : '3' }}" class="px-6 py-4 text-sm text-center text-gray-500">Tidak ada data barang.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -178,10 +216,18 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Barang</th>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Stok</th>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Tgl Kadaluarsa</th>
-                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">Sisa Hari</th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('nama_barang', 'Barang', $sortBy, $sortDirection, 'statusKadaluarsa') !!}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('stok', 'Stok', $sortBy, $sortDirection, 'statusKadaluarsa') !!}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('tanggal_kadaluarsa', 'Tgl Kadaluarsa', $sortBy, $sortDirection, 'statusKadaluarsa') !!}
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                                {!! sort_link('hari_menuju_kadaluarsa', 'Sisa Hari', $sortBy, $sortDirection, 'statusKadaluarsa') !!}
+                            </th>
                             <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">Status</th>
                         </tr>
                     </thead>
@@ -237,7 +283,7 @@
             @keydown.escape.window="isEditModalOpen = false">
             <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0" @click.away="isEditModalOpen = false">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold" x-text="'Edit Barang: ' + editingItem.nama_barang"></h2> {{-- Mungkin lebih baik tidak update judul ini jika nama di form berubah agar tidak membingungkan jika ada error --}}
+                    <h2 class="text-xl font-semibold" x-text="'Edit Barang: ' + editingItem.nama_barang"></h2>
                     <button @click="isEditModalOpen = false" class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-times"></i>
                     </button>
@@ -288,7 +334,7 @@
                 </form>
             </div>
         </div>
-        
+
         {{-- Delete Confirmation Modal --}}
         <div x-show="isDeleteModalOpen" x-cloak
             class="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50"
