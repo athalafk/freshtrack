@@ -5,21 +5,71 @@
 
 @section('content')
 @php $defaultTab = request('tab', 'daftarBarang'); @endphp
-    <div x-data="{ activeTab: '{{ $defaultTab }}' }" class="container mx-auto">
+    <div 
+    x-data="{
+        activeTab: '{{ $defaultTab }}',
+        isEditModalOpen: false,
+        isDeleteModalOpen: false,
+        editingItem: { id: null, nama_barang: '', satuan: '' },
+        itemToDelete: { id: null, nama_barang: '' },
+        predefinedUnits: ['kg', 'liter', 'pcs', 'pack', 'unit', 'gram', 'ml'],
+        editFormError: {},
+        editFormMessage: '',
 
-        {{-- Inisialisasi Alpine.js untuk modal --}}
-        <div x-data="{
-            activeTab: '{{ $defaultTab }}',
-            isEditModalOpen: false,
-            editingItem: { id: null, nama_barang: '', satuan: '' },
-            predefinedUnits: ['kg', 'liter', 'pcs', 'pack', 'unit', 'gram', 'ml'],
-            openEditModal(item) {
-                this.editingItem.id = item.id;
-                this.editingItem.nama_barang = item.nama_barang;
-                this.editingItem.satuan = item.satuan;
-                this.isEditModalOpen = true;
+        openEditModal(item) {
+            this.editingItem = { ...item };
+            this.editFormError = {};
+            this.editFormMessage = '';
+            this.isEditModalOpen = true;
+        },
+
+        openDeleteModal(item) {
+            this.itemToDelete = { ...item };
+            this.isDeleteModalOpen = true;
+        },
+
+        async submitEditForm() {
+            this.editFormError = {};
+            this.editFormMessage = '';
+            const csrfToken = document.querySelector('meta[name=csrf-token]').getAttribute('content');
+
+            try {
+                const response = await fetch(`{{ url('inventori') }}/${this.editingItem.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        _method: 'PUT',
+                        nama_barang: this.editingItem.nama_barang,
+                        satuan: this.editingItem.satuan
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    if (response.status === 422) {
+                        this.editFormError = data.errors;
+                        this.editFormMessage = data.message || 'Periksa input Anda.';
+                    } else {
+                        this.editFormMessage = data.message || 'Terjadi kesalahan server.';
+                    }
+                    return;
+                }
+
+                this.isEditModalOpen = false;
+                window.location.reload();
+            } catch (error) {
+                this.editFormMessage = 'Gagal terhubung ke server.';
+                console.error(error);
             }
-        }" class="container mx-auto">
+        }
+    }"
+    class="container mx-auto"
+>
 
         {{-- Navigasi Tab --}}
         <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
@@ -97,13 +147,13 @@
                                     })" class="text-sky-600 hover:text-sky-900 mr-3" title="Edit">
                                         <i class="fas fa-edit fa-fw"></i>
                                     </button>
-                                    <form action="{{ route('inventori.delete', $item->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang ini beserta seluruh batch stoknya?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus">
-                                            <i class="fas fa-trash-alt fa-fw"></i>
-                                        </button>
-                                    </form>
+
+                                    <button type="button" @click="openDeleteModal({
+                                        id: {{ $item->id }},
+                                        nama_barang: '{{ addslashes($item->nama_barang) }}'
+                                    })" class="text-red-600 hover:text-red-900" title="Hapus">
+                                        <i class="fas fa-trash-alt fa-fw"></i>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -183,30 +233,36 @@
 
         {{-- Edit Modal --}}
         <div x-show="isEditModalOpen" x-cloak
-            class="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50"  {{-- Diubah menjadi bg-black/50 --}}
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50"
             @keydown.escape.window="isEditModalOpen = false">
             <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0" @click.away="isEditModalOpen = false">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold" x-text="'Edit Barang: ' + editingItem.nama_barang"></h2>
+                    <h2 class="text-xl font-semibold" x-text="'Edit Barang: ' + editingItem.nama_barang"></h2> {{-- Mungkin lebih baik tidak update judul ini jika nama di form berubah agar tidak membingungkan jika ada error --}}
                     <button @click="isEditModalOpen = false" class="text-gray-500 hover:text-gray-700">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
-                <form :action="'{{ url('inventori') }}/' + editingItem.id" method="POST" x-ref="editForm">
-                    @csrf
-                    @method('PUT')
+                <div x-show="editFormMessage" class="mb-4 p-3 rounded-md text-sm"
+                    :class="{ 'bg-red-100 text-red-700': Object.keys(editFormError).length > 0, 'bg-green-100 text-green-700': Object.keys(editFormError).length === 0 && editFormMessage }">
+                    <p x-text="editFormMessage"></p>
+                </div>
+
+                <form @submit.prevent="submitEditForm()">
 
                     <div class="mb-4">
                         <label for="modal_nama_barang" class="block mb-2 text-sm font-medium text-gray-900">Nama Barang</label>
-                        <input type="text" name="nama_barang" id="modal_nama_barang" x-model="editingItem.nama_barang"
-                               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
-                               required>
+                        <input type="text" id="modal_nama_barang" x-model="editingItem.nama_barang" 
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
+                            required>
+                        <template x-if="editFormError.nama_barang">
+                            <p class="mt-1 text-xs text-red-600" x-text="editFormError.nama_barang[0]"></p>
+                        </template>
                     </div>
 
                     <div class="mb-6">
                         <label for="modal_satuan" class="block mb-2 text-sm font-medium text-gray-900">Satuan</label>
-                        <select name="satuan" id="modal_satuan" x-model="editingItem.satuan"
+                        <select id="modal_satuan" x-model="editingItem.satuan" 
                                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-sky-500 focus:border-sky-500 block w-full p-2.5"
                                 required>
                             <option value="">Pilih Satuan...</option>
@@ -214,6 +270,9 @@
                                 <option :value="unit" x-text="unit.charAt(0).toUpperCase() + unit.slice(1)"></option>
                             </template>
                         </select>
+                        <template x-if="editFormError.satuan">
+                            <p class="mt-1 text-xs text-red-600" x-text="editFormError.satuan[0]"></p>
+                        </template>
                     </div>
 
                     <div class="flex items-center justify-end space-x-4">
@@ -224,6 +283,38 @@
                         <button type="submit"
                                 class="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 focus:ring-4 focus:outline-none focus:ring-sky-300">
                             Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {{-- Delete Confirmation Modal --}}
+        <div x-show="isDeleteModalOpen" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center overflow-auto bg-black/50"
+            @keydown.escape.window="isDeleteModalOpen = false">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0" @click.away="isDeleteModalOpen = false">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Konfirmasi Hapus</h2>
+                    <button @click="isDeleteModalOpen = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="mb-6 text-gray-600">
+                    Apakah Anda yakin ingin menghapus barang <strong class="font-medium text-gray-800" x-text="itemToDelete.nama_barang"></strong>? Tindakan ini juga akan menghapus seluruh batch stok terkait dan tidak dapat diurungkan.
+                </p>
+
+                <form :action="'{{ url('inventori') }}/' + itemToDelete.id" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex items-center justify-end space-x-4">
+                        <button type="button" @click="isDeleteModalOpen = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-gray-100">
+                            Batal
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300">
+                            Hapus
                         </button>
                     </div>
                 </form>

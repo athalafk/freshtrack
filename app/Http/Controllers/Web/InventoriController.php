@@ -7,9 +7,11 @@ use App\Models\Barang;
 use App\Models\BatchBarang;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class InventoriController extends Controller
 {
@@ -62,10 +64,32 @@ class InventoriController extends Controller
 
     public function update(Request $request, Barang $barang)
     {
-        $request->validate([
-            'nama_barang' => 'required|string',
-            'satuan' => 'required|string',
-        ]);
+        $rules = [
+            'nama_barang' => [
+                'required',
+                'string',
+                Rule::unique('barang', 'nama_barang')->ignore($barang->id),
+            ],
+            'satuan' => 'required|string',  
+        ];
+
+        $messages = ['nama_barang.unique' => 'Nama Barang telah digunakan.'];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Perubahan gagal dilakukan. Periksa input Anda.',
+                    'errors' => $validator->errors()
+                ], 422); 
+            }
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        
+        $namaBarangLama = $barang->nama_barang;
 
         $barang->update([
             'nama_barang' => $request->nama_barang,
@@ -74,13 +98,23 @@ class InventoriController extends Controller
 
         Transaction::create([
             'type' => 'edit',
-            'item' => $barang->nama_barang,
+            'item' => "{$namaBarangLama} -> {$barang->nama_barang}",
             'stock' => 0,
             'actor' => Auth::user()->username
         ]);
 
+        $successMessage = 'Barang berhasil diperbarui.';
+
+        if ($request->expectsJson()) {
+            session()->flash('success', $successMessage);
+            return response()->json([
+                'message' => $successMessage,
+                'barang' => $barang 
+            ]);
+        }
+
         return redirect()->route('inventori.index')
-            ->with('success', 'Barang berhasil diperbarui.');
+            ->with('success', $successMessage);
     }
 
     public function delete(Barang $barang)
