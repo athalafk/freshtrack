@@ -32,9 +32,7 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('inventori.index')->with('info', 'Halaman Transaksi belum tersedia.');
     })->name('transaksi.index');
 
-    Route::get('/riwayat', function () {
-        return redirect()->route('inventori.index')->with('info', 'Halaman Riwayat belum tersedia.');
-    })->name('riwayat.index');
+    Route::get('/riwayat', [InventoriController::class, 'indexHistory'])->name('riwayat.index');
 });
 
 Route::middleware('guest')->group(function () {
