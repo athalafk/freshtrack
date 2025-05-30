@@ -13,13 +13,6 @@
                class="py-2 px-1 border-b-2 font-semibold text-gray-800 border-blue-600">
                 Barang Masuk
             </a>
-            {{-- Tab ini disiapkan, tetapi belum aktif --}}
-            {{-- 
-            <a href="{{ route('transaksi.barang-keluar') }}"
-               class="py-2 px-1 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent">
-                Barang Keluar
-            </a>
-            --}}
         </nav>
     </div>
 
@@ -39,21 +32,23 @@
         @endif
 
         {{-- Form --}}
-        <form method="POST" action="{{ route('transaksi.barang-masuk.store') }}" class="space-y-5">
+        <form method="POST" action="{{ route('transaksi.barang-masuk.store') }}" class="space-y-5" id="barangMasukForm">
             @csrf
 
             <div>
                 <label for="nama_barang" class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
-                <select name="nama_barang" id="nama_barang"
-                        class="w-full rounded-lg border border-gray-300 p-2.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Pilih barang</option>
+                <input type="text" name="nama_barang" id="nama_barang" list="barangList"
+                       class="w-full rounded-lg border border-gray-300 p-2.5 text-sm text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+                       autocomplete="off" required>
+                <datalist id="barangList">
                     @foreach ($barangList as $barang)
                         <option value="{{ $barang->nama_barang }}">{{ $barang->nama_barang }}</option>
                     @endforeach
-                </select>
+                </datalist>
                 @error('nama_barang')
                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                 @enderror
+                <p id="invalidBarang" class="text-sm text-red-600 mt-1 hidden">Barang tidak valid. Silakan pilih dari daftar.</p>
             </div>
 
             <div>
@@ -85,4 +80,31 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('barangMasukForm');
+    const namaBarangInput = document.getElementById('nama_barang');
+    const invalidBarangMsg = document.getElementById('invalidBarang');
+    const barangOptions = @json($barangList->pluck('nama_barang'));
+
+    form.addEventListener('submit', function(e) {
+        if (!barangOptions.includes(namaBarangInput.value)) {
+            e.preventDefault();
+            namaBarangInput.focus();
+            invalidBarangMsg.classList.remove('hidden');
+        } else {
+            invalidBarangMsg.classList.add('hidden');
+        }
+    });
+
+    namaBarangInput.addEventListener('change', function() {
+        if (!barangOptions.includes(this.value)) {
+            invalidBarangMsg.classList.remove('hidden');
+        } else {
+            invalidBarangMsg.classList.add('hidden');
+        }
+    });
+});
+</script>
 @endsection
