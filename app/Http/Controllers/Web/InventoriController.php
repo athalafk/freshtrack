@@ -181,7 +181,7 @@ public function storeBarangMasuk(Request $request)
     $request->validate([
         'nama_barang' => 'required|string',
         'stok' => 'required|integer|min:1',
-        'tanggal_kadaluarsa' => 'required|date',
+        'tanggal_kadaluarsa' => 'required|date|after_or_equal:today',
     ]);
 
     $barang = Barang::where('nama_barang', $request->nama_barang)->first();
