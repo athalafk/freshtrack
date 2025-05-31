@@ -28,7 +28,7 @@ Sebelum memulai, pastikan Anda memiliki perangkat lunak berikut terinstal di sis
 **1. Clone Repositori**:
 ```bash
 git clone https://github.com/athalafk/freshtrack.git
-cd freshtrack-backend
+cd freshtrack
 ```
 Jika tidak, pastikan Anda berada di direktori root proyek Anda.
 
