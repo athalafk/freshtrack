@@ -125,7 +125,7 @@ class InventoriController extends Controller
         ]);
 
         Transaction::create([
-            'type' => 'registrasi',
+            'type' => 'tambah',
             'item' => $barang->nama_barang,
             'stock' => 0,
             'actor' => Auth::user()->username,
