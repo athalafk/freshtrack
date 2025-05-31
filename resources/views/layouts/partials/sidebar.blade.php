@@ -17,12 +17,12 @@
             <span>Inventori</span>
         </a>
 
-        {{-- Buat Barang (Admin Only) --}}
+        {{-- Registrasi Barang (Admin Only) --}}
         @if (Auth::check() && Auth::user()->role === 'admin')
         <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('registrasi.create') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('registrasi.create') }}">
             <i class="fas fa-plus-square fa-fw w-5 mr-3"></i> {{-- Icon for adding/creating --}}
-            <span>Buat Barang</span>
+            <span>Registrasi Barang</span>
         </a>
         @endif
 

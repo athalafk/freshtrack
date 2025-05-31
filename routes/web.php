@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\InventoriController;
+use App\Http\Controllers\Web\HistoryController;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -31,7 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/registrasi', [InventoriController::class, 'create'])->name('registrasi.create'); //
     Route::post('/registrasi', [InventoriController::class, 'store'])->name('registrasi.store'); //
 
-    Route::get('/riwayat', [InventoriController::class, 'indexHistory'])->name('riwayat.index');
+    Route::get('/riwayat', [HistoryController::class, 'indexHistory'])->name('riwayat.index');
 });
 
 Route::middleware('guest')->group(function () {
