@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\InventoriController;
 use App\Http\Controllers\Web\HistoryController;
+use App\Http\Controllers\Web\TransaksiController;
+
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -22,8 +24,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/inventori/{barang}', [InventoriController::class, 'update'])->name('inventori.update');
     Route::delete('/inventori/{barang}', [InventoriController::class, 'delete'])->name('inventori.delete');
 
-    Route::get('/transaksi/barang-masuk', [InventoriController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
-    Route::post('/transaksi/barang-masuk', [InventoriController::class, 'storeBarangMasuk'])->name('transaksi.barang-masuk.store');
+    Route::get('/transaksi/barang-masuk', [TransaksiController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
+    Route::post('/transaksi/barang-masuk', [TransaksiController::class, 'storeBarangMasuk'])->name('transaksi.barang-masuk.store');
 
     Route::get('/transaksi', function () {
         return redirect()->route('inventori.index')->with('info', 'Halaman Transaksi belum tersedia.');
