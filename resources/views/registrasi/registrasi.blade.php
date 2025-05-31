@@ -1,4 +1,3 @@
-{{-- resources/views/registrasi/registrasi.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Registrasi Barang') 
