@@ -18,14 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])
         ->name('logout');
 
-    Route::get('/barang/create', function () {
-        return redirect()->route('inventori.index')->with('info', 'Halaman Buat Barang belum tersedia.');
-    })->name('barang.create');
-
     Route::put('/inventori/{barang}', [InventoriController::class, 'update'])->name('inventori.update');
     Route::delete('/inventori/{barang}', [InventoriController::class, 'delete'])->name('inventori.delete');
 
-     Route::get('/transaksi/barang-masuk', [InventoriController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
+    Route::get('/transaksi/barang-masuk', [InventoriController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
     Route::post('/transaksi/barang-masuk', [InventoriController::class, 'storeBarangMasuk'])->name('transaksi.barang-masuk.store');
 
     Route::get('/transaksi', function () {

@@ -17,16 +17,7 @@
             <span>Inventori</span>
         </a>
 
-        {{-- Daftar Barang (Admin Only) --}}
-        @if (Auth::check() && Auth::user()->role === 'admin')
-        <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('barang.create') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
-            href="{{ route('barang.create') }}">
-            <i class="fas fa-plus-square fa-fw w-5 mr-3"></i>
-            <span>Daftar Barang</span>
-        </a>
-        @endif
-
-        {{-- Buat Barang (Register New Item - Admin Only) --}}
+        {{-- Buat Barang (Admin Only) --}}
         @if (Auth::check() && Auth::user()->role === 'admin')
         <a class="flex items-center px-6 py-3 mt-2 text-gray-100 {{ request()->routeIs('registrasi.create') ? 'bg-sky-700' : 'hover:bg-sky-700' }}"
             href="{{ route('registrasi.create') }}">
