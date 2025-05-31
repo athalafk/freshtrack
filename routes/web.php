@@ -27,12 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/transaksi/barang-masuk', [TransaksiController::class, 'showBarangMasuk'])->name('transaksi.barang-masuk');
     Route::post('/transaksi/barang-masuk', [TransaksiController::class, 'storeBarangMasuk'])->name('transaksi.barang-masuk.store');
 
-    Route::get('/transaksi', function () {
-        return redirect()->route('inventori.index')->with('info', 'Halaman Transaksi belum tersedia.');
-    })->name('transaksi.index');
+    Route::get('/transaksi/barang-keluar', [TransaksiController::class, 'showBarangKeluar'])->name('transaksi.barang-keluar');
+    Route::post('/transaksi/barang-keluar', [TransaksiController::class, 'storeBarangKeluar'])->name('transaksi.barang-keluar.store');
 
-    Route::get('/registrasi', [InventoriController::class, 'create'])->name('registrasi.create'); //
-    Route::post('/registrasi', [InventoriController::class, 'store'])->name('registrasi.store'); //
+    Route::get('/registrasi', [InventoriController::class, 'create'])->name('registrasi.create');
+    Route::post('/registrasi', [InventoriController::class, 'store'])->name('registrasi.store'); 
 
     Route::get('/riwayat', [HistoryController::class, 'indexHistory'])->name('riwayat.index');
 });

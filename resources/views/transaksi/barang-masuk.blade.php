@@ -1,4 +1,3 @@
-{{-- resources/views/transaksi/barang-masuk.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Barang Masuk')
@@ -12,6 +11,10 @@
             <a href="{{ route('transaksi.barang-masuk') }}"
                class="py-2 px-1 border-b-2 font-semibold text-gray-800 border-blue-600">
                 Barang Masuk
+            </a>
+            <a href="{{ route('transaksi.barang-keluar') }}"
+               class="py-2 px-1 text-gray-500 hover:text-gray-700 hover:border-gray-300 {{ request()->routeIs('transaksi.barang-keluar') ? 'border-b-2 font-semibold text-gray-800 border-sky-600' : '' }}">
+                Barang Keluar
             </a>
         </nav>
     </div>
