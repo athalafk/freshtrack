@@ -10,7 +10,7 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->enum('type', ['masuk', 'keluar', 'tambah', 'edit', 'hapus']);
+            $table->enum('type', ['masuk', 'keluar', 'tambah', 'edit', 'hapus', 'registrasi']);
             $table->string('item');
             $table->integer('stock');
             $table->string('actor');

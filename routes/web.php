@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('inventori.index')->with('info', 'Halaman Transaksi belum tersedia.');
     })->name('transaksi.index');
 
+    Route::get('/registrasi', [InventoriController::class, 'create'])->name('registrasi.create'); //
+    Route::post('/registrasi', [InventoriController::class, 'store'])->name('registrasi.store'); //
+
     Route::get('/riwayat', [InventoriController::class, 'indexHistory'])->name('riwayat.index');
 });
 

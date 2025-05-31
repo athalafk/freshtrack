@@ -96,6 +96,44 @@ class InventoriController extends Controller
         ));
     }
 
+    public function create()
+    {
+        $barangList = Barang::select('nama_barang')->get();
+        return view('registrasi.registrasi', compact('barangList'));
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nama_barang' => 'required|string|unique:barang,nama_barang|max:255',
+            'satuan' => 'required|string|max:50',
+        ], [
+            'nama_barang.unique' => 'Nama Barang sudah terdaftar. Silakan gunakan nama lain.',
+            'nama_barang.required' => 'Nama Barang tidak boleh kosong.',
+            'satuan.required' => 'Satuan tidak boleh kosong.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('registrasi.create')
+                        ->withErrors($validator)
+                        ->withInput();
+        }
+
+        $barang = Barang::create([
+            'nama_barang' => $request->nama_barang,
+            'satuan' => $request->satuan,
+        ]);
+
+        Transaction::create([
+            'type' => 'registrasi',
+            'item' => $barang->nama_barang,
+            'stock' => 0,
+            'actor' => Auth::user()->username,
+        ]);
+
+        return redirect()->route('registrasi.create')->with('success', 'Barang berhasil diregistrasi!');
+    }
+
     public function update(Request $request, Barang $barang)
     {
         $rules = [
