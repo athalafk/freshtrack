@@ -1,27 +1,31 @@
 # Freshtrack - Laravel (API dan Web)
-FreshTrack adalah aplikasi manajemen inventaris yang dirancang untuk membantu restoran atau bisnis kuliner melacak masa kedaluarsa bahan baku, mengelola stok barang masuk dan keluar, serta memantau riwayat transaksi. Backend ini dibangun menggunakan Laravel dan menyediakan API untuk diintegrasikan dengan aplikasi frontend.
+FreshTrack adalah aplikasi manajemen inventaris yang dirancang untuk membantu restoran atau bisnis kuliner melacak masa kadaluarsa bahan baku, mengelola stok barang masuk dan keluar, serta memantau riwayat transaksi. Aplikasi ini terdiri dari backend API dan antarmuka Web yang dibangun menggunakan Laravel.
 
 ## Fitur Utama
-- Autentikasi Pengguna: Sistem login untuk admin dan staf dengan menggunakan Laravel Sanctum untuk autentikasi berbasis token.
-- Manajemen Barang: CRUD (Create, Read, Update, Delete) untuk data master barang.
-- Manajemen Batch Barang: Setiap barang dapat memiliki beberapa batch dengan tanggal kedaluwarsa dan menampilkan sisa hari menuju tanggal kadaluarsa serta jumlah stok yang berbeda
-- Manajemen Stok: Pencatatan barang masuk (menambah stok pada batch tertentu atau membuat batch baru) dan Pencatatan barang keluar (mengurangi stok pada batch yang paling dekat kadaluarsanya).
-- Riwayat Transaksi: Mencatat semua aktivitas penting seperti barang masuk, barang keluar, penambahan barang baru, pengeditan barang, dan penghapusan barang. Setiap transaksi mencatat item, tipe aksi, jumlah stok yang terlibat, dan aktor (pengguna yang melakukan aksi). Filter transaksi berdasarkan rentang tanggal dan mencetak pdf.
-- API Endpoints: Menyediakan endpoint API yang aman untuk semua fungsionalitas di atas.
+- **Autentikasi Pengguna**: Sistem login untuk admin dan staf. API menggunakan Laravel Sanctum untuk autentikasi berbasis token, sedangkan Web menggunakan session-based authentication.
+- **Manajemen Barang (Web & API)**: CRUD (Create, Read, Update, Delete) untuk data master barang.
+- **Manajemen Batch Barang (Web & API)**: Setiap barang dapat memiliki beberapa batch dengan tanggal kedaluwarsa, sisa hari menuju tanggal kadaluarsa, dan jumlah stok yang berbeda.
+- **Manajemen Stok (Web & API)**: Pencatatan barang masuk (menambah stok pada batch tertentu atau membuat batch baru) dan pencatatan barang keluar (mengurangi stok dari batch yang paling dekat kadaluarsanya).
+- **Riwayat Transaksi (Web & API)**: Mencatat semua aktivitas penting seperti barang masuk, barang keluar, penambahan barang baru, pengeditan barang, dan penghapusan barang. Setiap transaksi mencatat item, tipe aksi, jumlah stok yang terlibat, dan aktor (pengguna yang melakukan aksi). Fitur filter transaksi berdasarkan rentang tanggal dan pencetakan PDF tersedia di antarmuka Web.
+- **Antarmuka Web**: Menyediakan dashboard interaktif untuk manajemen inventori, transaksi, dan riwayat.
+- **API Endpoints**: Menyediakan endpoint API yang aman untuk semua fungsionalitas utama.
 
 ## Teknologi yang Digunakan
 - Framework: Laravel 12.x
 - Database: MySQL
 - Autentikasi API: Laravel Sanctum
+- Autentikasi Web: Laravel Session
 - PHP: Versi 8.2 atau lebih tinggi
 - Composer: Untuk manajemen dependensi PHP
+- Frontend Web: Blade, Tailwind CSS, Alpine.js
 
 ## Prasyarat
 Sebelum memulai, pastikan Anda memiliki perangkat lunak berikut terinstal di sistem Anda:
 
 - PHP (versi yang sesuai dengan Laravel 12, direkomendasikan 8.2+)
 - Composer
-- Database Server (misalnya MySQL, MariaDB, PostgreSQL, atau SQLite)
+- Database Server (MySQL)
+- Node.js dan npm (untuk Vite dan dependensi frontend)
 - Git (opsional, untuk kloning repositori)
 
 ## Instalasi
@@ -37,18 +41,23 @@ Jika tidak, pastikan Anda berada di direktori root proyek Anda.
 composer install
 ```
 
-**3. Salin File Environment**:
+**3. Install Node.js**:
+```bash
+npm install
+```
+
+**4. Salin File Environment**:
 Buat file .env dari contoh file .env.example:
 ```bash
 copy .env.example .env
 ```
 
-**4. Generate Kunci Aplikasi**:
+**5. Generate Kunci Aplikasi**:
 ```bash
 php artisan key:generate
 ```
 
-**5. Konfigurasi Database**:
+**6. Konfigurasi Database**:
 Buka file .env dan sesuaikan pengaturan database berikut sesuai dengan konfigurasi server database Anda:
 ```bash
 DB_CONNECTION=mysql
@@ -60,13 +69,13 @@ DB_PASSWORD=              # Ganti dengan password database Anda
 ```
 Pastikan database dengan nama yang Anda tentukan sudah dibuat di server database Anda.
 
-**6. Jalankan Migrasi Database**:
+**7. Jalankan Migrasi Database**:
 Perintah ini akan membuat semua tabel yang diperlukan di database Anda.
 ```bash
 php artisan migrate
 ```
 
-**7. Jalankan Database Seeder** (Opsional, tapi direkomendasikan untuk data awal):
+**8. Jalankan Database Seeder** (Opsional, tapi direkomendasikan untuk data awal):
 Perintah ini akan mengisi database dengan data dummy (pengguna, barang, batch, transaksi) yang telah Anda definisikan di file seeder.
 ```bash
 php artisan db:seed
@@ -76,11 +85,48 @@ Jika Anda ingin mereset database dan menjalankan migrasi serta seeder dari awal:
 php artisan migrate:fresh --seed
 ```
 
-**8. Jalankan Server Pengembangan Laravel**:
+**9. Build Aset Frontend**:
+```bash
+npm run build
+```
+
+**10. Jalankan Server Pengembangan Laravel**:
 ```bash
 php artisan serve
 ```
 Secara default, server akan berjalan di ```http://127.0.0.1:8000```.
+
+## Struktur Web
+
+Semua rute web (kecuali halaman login) dilindungi oleh autentikasi.
+
+### Autentikasi (`/`)
+
+- **GET** `/login`: Menampilkan halaman login.
+- **POST** `/login`: Memproses permintaan login pengguna.
+- **POST** `/logout`: Memproses permintaan logout pengguna.
+
+### Inventori (`/inventori`)
+
+- **GET** `/`: Menampilkan halaman utama inventori yang berisi daftar barang dan status kedaluwarsa batch barang. Mendukung pencarian dan pengurutan.
+- **PUT** `/{barang}` _(Khusus Admin)_: Memperbarui data master barang tertentu.
+- **DELETE** `/{barang}` _(Khusus Admin)_: Menghapus data master barang beserta semua batch terkait.
+
+### Registrasi Barang (`/registrasi`) _(Khusus Admin)_
+
+- **GET** `/`: Menampilkan formulir pendaftaran barang baru.
+- **POST** `/`: Menyimpan data barang baru ke dalam database.
+
+### Transaksi (`/transaksi`)
+
+- **GET** `/barang-masuk`: Menampilkan formulir pencatatan transaksi barang masuk.
+- **POST** `/barang-masuk`: Memproses dan menyimpan transaksi barang masuk. Menambah stok batch barang.
+- **GET** `/barang-keluar`: Menampilkan formulir pencatatan transaksi barang keluar.
+- **POST** `/barang-keluar`: Memproses dan menyimpan transaksi barang keluar. Mengurangi stok batch barang.
+
+### Riwayat (`/riwayat`) _(Khusus Admin)_
+
+- **GET** `/`: Menampilkan halaman riwayat transaksi. Mendukung filter berdasarkan rentang tanggal dan opsi cetak laporan dalam format PDF.
 
 ## Struktur API Endpoint Utama
 Semua endpoint API berada di bawah prefix ```/api```.
@@ -134,3 +180,7 @@ Semua endpoint API berada di bawah prefix ```/api```.
 - Bayu Tiadi Nurul Fajar
 - Muhammad Hilmi Fauzi
 - Helmi Efendi Lubis
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
