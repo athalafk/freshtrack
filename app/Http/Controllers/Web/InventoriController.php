@@ -33,7 +33,7 @@ class InventoriController extends Controller
                 'b.id',
                 'b.nama_barang',
                 'b.satuan',
-                DB::raw('CAST(COALESCE(s.total_stok, 0) AS UNSIGNED) as total_stok')
+                DB::raw('COALESCE(s.total_stok, 0) as total_stok')
             );
 
         if ($searchTerm) {
@@ -62,7 +62,7 @@ class InventoriController extends Controller
                 'bg.stok',
                 'b.satuan',
                 'bg.tanggal_kadaluarsa',
-                DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE()) AS hari_menuju_kadaluarsa')
+                DB::raw("DATE_PART('day', bg.tanggal_kadaluarsa::timestamp - CURRENT_DATE) AS hari_menuju_kadaluarsa")
             );
 
         if ($searchTerm) {
@@ -72,14 +72,21 @@ class InventoriController extends Controller
         if ($sortByBatch === 'nama_barang') {
             $queryBatch->orderBy('b.nama_barang', $sortDirection);
         } elseif ($sortByBatch === 'hari_menuju_kadaluarsa') {
-            $queryBatch->orderBy(DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE())'), $sortDirection);
+            $queryBatch->orderBy(DB::raw("DATE_PART('day', bg.tanggal_kadaluarsa::timestamp - CURRENT_DATE)"), $sortDirection);
         } elseif (in_array($sortByBatch, ['stok', 'tanggal_kadaluarsa'])) {
              $queryBatch->orderBy('bg.' . $sortByBatch, $sortDirection);
         } else {
             $queryBatch->orderBy('bg.tanggal_kadaluarsa', 'asc');
         }
 
-        $statusKadaluarsa = $queryBatch->orderBy($sortByBatch === 'nama_barang' ? 'b.nama_barang' : ($sortByBatch === 'hari_menuju_kadaluarsa' ? DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE())') : 'bg.' . $sortByBatch), $sortDirection)
+        $statusKadaluarsa = $queryBatch->orderBy(
+            $sortByBatch === 'nama_barang'
+                ? 'b.nama_barang'
+                : ($sortByBatch === 'hari_menuju_kadaluarsa'
+                    ? DB::raw("DATE_PART('day', bg.tanggal_kadaluarsa::timestamp - CURRENT_DATE)")
+                    : 'bg.' . $sortByBatch),
+            $sortDirection
+        )
             ->paginate(10, ['*'], 'batchPage')
             ->through(function ($item) {
                 $item->tanggal_kadaluarsa_formatted = Carbon::parse($item->tanggal_kadaluarsa)->isoFormat('DD/MM/YYYY');

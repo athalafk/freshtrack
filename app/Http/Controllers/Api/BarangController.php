@@ -23,7 +23,7 @@ class BarangController extends Controller
                 'b.id',
                 'b.nama_barang',
                 'b.satuan',
-                DB::raw('CAST(COALESCE(s.total_stok, 0) AS UNSIGNED) as total_stok')
+                DB::raw('COALESCE(s.total_stok, 0) as total_stok')
             )
             ->orderBy('b.nama_barang', 'asc')
             ->get();
@@ -45,7 +45,7 @@ class BarangController extends Controller
                 'bg.stok',
                 'b.satuan',
                 'bg.tanggal_kadaluarsa',
-                DB::raw('DATEDIFF(DATE(bg.tanggal_kadaluarsa), CURDATE()) AS hari_menuju_kadaluarsa')
+                DB::raw("DATE_PART('day', bg.tanggal_kadaluarsa::timestamp - CURRENT_DATE) AS hari_menuju_kadaluarsa")
             )
             ->orderBy('bg.tanggal_kadaluarsa', 'asc')
             ->get()
